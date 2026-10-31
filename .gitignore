@@ -1,0 +1,4 @@
+# Raw source material (Roxanne's slides, Brandfolder originals, the 186 MB drone master)
+_src/
+.claude/
+.DS_Store

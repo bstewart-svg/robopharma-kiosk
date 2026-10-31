@@ -1,0 +1,560 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RoboPharma Touch Kiosk</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the NACDS kiosk's screen grammar (dark overview with numbered pills beside
+   an illustration, light detail with step strip + photo card, closing QR screen) on a
+   fixed 1920×1080 stage, dressed in RoboPharma NL's own palette and Manrope. */
+:root{
+  --deep:#005587;         /* RoboPharma brand ground, dark screens */
+  --deep-2:#003f66;       /* title boxes, markers */
+  --blue:#0076a8;         /* eyebrows + numbers on light */
+  --sky:#00a8ef;
+  --sky-2:#0082ce;
+  --amber:#ffaf3b;        /* action colour: back pill, active step */
+  --coral:#f6776f;
+  --paper:#ffffff;
+  --mist:#eef3f7;         /* light screen ground (NACDS cream, cooled to RP blue) */
+  --rule:#c9d7e2;
+  --ink:#0b2236;
+  --ink-soft:#4a6274;
+  --on-deep:#ffffff;
+  --on-deep-soft:rgba(255,255,255,.76);
+  --letterbox:#021d30;
+  --arrows:linear-gradient(90deg,var(--sky-2) 0%,var(--sky) 33%,var(--coral) 66%,var(--amber) 100%); /* the four logo arrows */
+  --f-display:"Manrope","Manrope Local",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono","IBM Plex Mono Local",ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+/* Local copies of both faces, so an offline kiosk renders the same as online. */
+@font-face{font-family:"Manrope Local";src:url(assets/fonts/Manrope-var-latin.woff2) format("woff2");font-weight:300 800;font-display:swap}
+@font-face{font-family:"IBM Plex Mono Local";src:url(assets/fonts/IBMPlexMono-normal-400-latin.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"IBM Plex Mono Local";src:url(assets/fonts/IBMPlexMono-normal-500-latin.woff2) format("woff2");font-weight:500;font-display:swap}
+[hidden]{display:none!important}
+/* Download readout for setup day: hidden unless the URL carries ?cache */
+#cache{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:20;display:none;padding:10px 22px;border-radius:999px;
+  background:rgba(2,29,48,.88);color:#fff;font:400 14px/1 var(--f-mono);letter-spacing:.16em;white-space:nowrap;transition:opacity .8s ease}
+body.cache #cache{display:block}
+#cache.done{background:rgba(22,120,60,.92)}
+#cache.gone{opacity:0}
+html,body{height:100%}
+body{margin:0;background:var(--letterbox);color:var(--on-deep);font-family:var(--f-display);overflow:hidden;
+  -webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+#fit{position:fixed;inset:0;overflow:hidden}
+#stage{position:absolute;left:50%;top:50%;width:1920px;height:1080px;transform-origin:center;overflow:hidden;background:var(--deep)}
+#stage.instant .screen{transition:none}
+.screen{position:absolute;inset:0;opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s;background:var(--deep)}
+.screen.on{opacity:1;visibility:visible;transition:opacity .35s ease}
+.screen.light{background:var(--mist);color:var(--ink)}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer;text-align:left}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:4px}
+h1,h2,h3,p,figure{margin:0}
+h1,h2{text-wrap:balance}
+.mono{font-family:var(--f-mono);text-transform:uppercase;letter-spacing:.28em}
+.eyebrow{position:absolute;left:112px;top:84px;font-family:var(--f-mono);font-size:22px;letter-spacing:.34em;text-transform:uppercase;color:var(--amber)}
+.light .eyebrow{color:var(--blue)}
+.det .eyebrow{top:150px}
+.logo{position:absolute;width:270px}
+.logo img{width:100%;display:block}
+.logo-bl{left:112px;bottom:46px}
+.logo-tr{right:112px;top:62px;width:260px}
+
+/* ---------- step strip, back pill, global nav (NACDS station chrome) ---------- */
+.strip{position:absolute;left:112px;right:112px;top:40px;z-index:3;display:flex;gap:26px}
+.strip button{flex:1 1 0;min-width:0;padding-top:16px;border-top:3px solid rgba(255,255,255,.3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  font-family:var(--f-mono);font-size:17px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.6)}
+.strip button b{font-weight:500;color:inherit;margin-right:.5em}
+.strip button.on{border-top-color:var(--amber);color:var(--on-deep)}
+.strip button.on b{color:var(--amber)}
+.light .strip button{border-top-color:var(--rule);color:#7d93a3}
+.light .strip button.on{border-top-color:var(--amber);color:var(--ink)}
+.light .strip button.on b{color:var(--blue)}
+.back{position:absolute;right:112px;top:132px;z-index:3;display:flex;align-items:center;gap:12px;padding:16px 28px;border-radius:999px;
+  background:var(--amber);color:var(--ink);font-family:var(--f-mono);font-size:19px;font-weight:500;letter-spacing:.12em;text-transform:uppercase}
+.back svg{width:20px;height:20px}
+nav.global{position:absolute;right:112px;bottom:40px;z-index:4;display:flex;gap:4px;padding:6px;border-radius:999px;background:var(--deep-2)}
+nav.global button{padding:13px 24px;border-radius:999px;font-family:var(--f-mono);font-size:17px;letter-spacing:.14em;text-transform:uppercase;color:var(--on-deep-soft)}
+nav.global button.on{background:var(--paper);color:var(--deep)}
+nav.global .auto{display:flex;align-items:center;gap:10px;margin-left:6px;border:2px solid var(--amber);color:var(--amber)}
+nav.global .auto svg{width:16px;height:16px}
+nav.global .auto.on{background:var(--amber);color:var(--ink)}
+#home .foot .qr{position:absolute;right:0;bottom:878px}
+
+/* ---------- HOME (layout: NACDS "Every form factor") ---------- */
+#home video,#home .wash{position:absolute;inset:0;width:100%;height:100%}
+#home video{object-fit:cover}
+#home .wash,#closing .wash{inset:-4px;width:auto;height:auto} /* overscan so the scaled stage never shows a sliver of unwashed video */
+#home .wash{background:linear-gradient(180deg,rgba(0,63,102,.72) 0%,rgba(0,63,102,.55) 30%,rgba(0,46,76,.9) 58%,rgba(0,40,66,.97) 100%)}
+#home .eyebrow{color:var(--on-deep)}
+#home h1{position:absolute;left:112px;top:150px;width:1500px;font-size:128px;line-height:1;font-weight:800;letter-spacing:-.025em}
+#home h1 em{font-style:normal;color:var(--amber)}
+#home .sub{position:absolute;left:112px;top:432px;font-size:34px;font-weight:400;color:var(--on-deep-soft)}
+.rule{position:absolute;left:112px;right:112px;height:3px;background:var(--arrows)}
+#home .rule{top:540px}
+#home .cols{position:absolute;left:112px;right:112px;top:572px;display:grid;grid-template-columns:repeat(3,1fr);gap:56px}
+.col{display:grid;align-content:start;gap:14px;padding:28px 0 10px}
+.col .n{font-family:var(--f-mono);font-size:44px;color:var(--amber)}
+.col h2{font-size:60px;font-weight:700;letter-spacing:-.01em}
+.col p{font-size:28px;line-height:1.4;color:var(--on-deep-soft);max-width:22ch}
+.col .go{margin-top:10px;font-family:var(--f-mono);font-size:19px;letter-spacing:.2em;color:var(--amber)}
+.col:active h2{color:var(--amber)}
+#home .foot{position:absolute;left:112px;right:112px;bottom:46px;display:flex;align-items:flex-end;justify-content:space-between}
+#home .foot .logo{position:static}
+.qr{display:flex;align-items:center;gap:22px}
+.qr .code{background:var(--paper);padding:10px;border-radius:8px;width:118px;height:118px}
+.qr .code img{width:100%;height:100%;display:block}
+.qr p{font-size:22px;line-height:1.35;color:var(--on-deep-soft);text-align:right}
+.qr p b{display:block;font-weight:700;color:var(--on-deep);font-size:26px}
+
+/* ---------- OVERVIEW (layout: NACDS "Ten stations") ---------- */
+.ov h1{position:absolute;left:112px;top:140px;width:1100px;font-size:84px;line-height:1.05;font-weight:800;letter-spacing:-.02em;z-index:2}
+.ov .cue{position:absolute;left:112px;top:368px;font-family:var(--f-mono);font-size:22px;letter-spacing:.2em;text-transform:uppercase;color:var(--amber);z-index:2}
+.ov .rows{position:absolute;left:112px;top:426px;display:grid;gap:26px;z-index:2}
+.ov .row{position:relative;display:flex;gap:22px}
+.ov .row+.row::before{content:"";position:absolute;left:-34px;top:-40px;width:26px;height:70px;border:2px solid rgba(255,255,255,.26);border-right:0;border-radius:18px 0 0 18px}
+.pill{position:relative;display:flex;align-items:center;gap:14px;padding:16px 28px;border-radius:999px;border:2px solid rgba(255,255,255,.34);background:rgba(0,40,66,.55);
+  font-family:var(--f-mono);font-size:21px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;transition:background .15s,border-color .15s}
+.pill b{font-weight:500;color:var(--amber)}
+.pill+.pill::before{content:"";position:absolute;left:-24px;top:50%;width:22px;border-top:2px solid rgba(255,255,255,.26)}
+.pill:active,.pill.hi{background:rgba(255,175,59,.18);border-color:var(--amber)}
+.pill.film{border-color:var(--amber);color:var(--amber)}
+.pill.film svg{width:18px;height:18px}
+.note{position:absolute;left:112px;bottom:56px;font-size:22px;line-height:1.45;color:var(--on-deep-soft);max-width:44ch;z-index:2}
+.note b{color:var(--on-deep);font-weight:700}
+.alt{position:absolute;left:112px;z-index:2;display:inline-flex;align-items:center;gap:14px;padding:16px 28px;border-radius:999px;background:var(--paper);color:var(--deep);
+  font-family:var(--f-mono);font-size:19px;font-weight:500;letter-spacing:.14em;text-transform:uppercase}
+.alt svg{width:20px;height:20px}
+
+/* RoboWall overview art */
+#robowall .halo{position:absolute;right:30px;top:150px;width:820px;height:820px;border-radius:50%;background:radial-gradient(circle,rgba(0,168,239,.36) 0%,rgba(0,168,239,0) 66%)}
+#robowall .render{position:absolute;right:160px;top:140px;width:520px;height:806px;object-fit:contain}
+#robowall .demo{position:absolute;left:112px;top:812px;z-index:2;display:flex;align-items:center;gap:20px;font-size:26px;color:var(--on-deep)}
+#robowall .demo::before{content:"";width:16px;height:16px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 8px rgba(246,119,111,.25)}
+#robowall .demo b{color:var(--amber);font-weight:700}
+
+/* Central Fill overview art */
+#centralfill .plan{position:absolute;left:820px;top:250px;width:1080px;height:744px}
+#centralfill .plan img{width:100%;height:100%;display:block}
+.mk{position:absolute;width:104px;height:104px;margin:-52px 0 0 -52px;display:grid;place-items:center;border-radius:50%}
+.mk span{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--deep-2);color:var(--paper);
+  font-family:var(--f-mono);font-size:24px;font-weight:500;box-shadow:0 0 0 3px var(--paper),0 6px 16px rgba(0,30,50,.4);transition:background .15s,transform .15s}
+.mk:active span,.mk.hi span{background:var(--amber);color:var(--ink);transform:scale(1.12)}
+#centralfill .alt{top:858px}
+#centralfill .note{bottom:46px;font-size:20px}
+
+/* ---------- DETAIL (layout: NACDS station detail, light) ---------- */
+.det .body{position:absolute;left:112px;top:262px;width:760px}
+.det h2{font-size:80px;line-height:1.04;font-weight:800;letter-spacing:-.02em;color:var(--deep)}
+.det .text{margin-top:36px;font-size:29px;line-height:1.5;color:var(--ink-soft);font-weight:400}
+.det .text strong{color:var(--ink);font-weight:600}
+.card{position:absolute;left:940px;top:226px;width:868px;height:700px;border-radius:26px;overflow:hidden;background:var(--deep-2)}
+.card img,.card video{width:100%;height:100%;object-fit:cover;display:block}
+.card figcaption{position:absolute;left:0;right:0;bottom:0;padding:90px 40px 32px;background:linear-gradient(180deg,rgba(0,40,66,0) 0%,rgba(0,40,66,.88) 100%);
+  font-family:var(--f-mono);font-size:24px;letter-spacing:.24em;text-transform:uppercase;color:var(--paper)}
+/* full 16:9 frame, caption in a strip below so nothing covers the film */
+.card.wide{top:262px;height:auto}
+.card.wide video{height:auto;aspect-ratio:16/9;object-fit:contain;background:#000}
+.card.wide figcaption{position:static;padding:22px 36px;background:var(--deep-2)}
+.card.map{background:var(--deep)}
+.card.map img{object-fit:contain;padding:40px 30px 110px}
+.kpis{margin-top:40px;display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+.kpis.three{grid-template-columns:repeat(3,1fr)}
+.kpi{border:2px solid var(--rule);border-radius:16px;padding:20px 24px 22px;background:var(--paper)}
+.kpi i{display:block;font-style:normal;font-family:var(--f-mono);font-size:16px;letter-spacing:.24em;text-transform:uppercase;color:var(--blue)}
+.kpi b{display:block;margin-top:4px;font-size:52px;line-height:1.05;font-weight:800;color:var(--deep);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi span{display:block;margin-top:6px;font-size:21px;line-height:1.35;color:var(--ink-soft)}
+.kpis.three .kpi b{font-size:46px}
+.steps{list-style:none;margin:30px 0 0;padding:0;display:grid;gap:18px;counter-reset:s}
+.steps li{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:20px;font-size:28px;color:var(--ink);counter-increment:s}
+.steps li::before{content:counter(s,decimal-leading-zero);width:56px;height:56px;border-radius:50%;background:var(--deep);color:var(--paper);display:grid;place-items:center;font-family:var(--f-mono);font-size:20px}
+.ticks{list-style:none;margin:30px 0 0;padding:0;display:grid;gap:16px}
+.ticks li{display:flex;gap:20px;align-items:center;font-size:30px;color:var(--ink)}
+.ticks li::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--amber);flex:none}
+.vals{margin-top:34px;display:grid;grid-template-columns:1fr 1fr;gap:26px 34px}
+.vals div{display:grid;grid-template-columns:72px 1fr;gap:18px;align-items:start}
+.vals img{width:72px;height:72px;border-radius:50%;object-fit:cover;transform:scale(1.04)}
+.vals b{display:block;font-size:26px;font-weight:700;color:var(--deep)}
+.vals span{display:block;font-size:21px;line-height:1.4;color:var(--ink-soft)}
+.live{position:absolute;left:430px;bottom:58px;font-size:21px;color:var(--ink-soft);display:flex;align-items:center;gap:12px}
+.live::before{content:"";width:12px;height:12px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 6px rgba(246,119,111,.22)}
+
+/* ---------- RoboWall film (layout: NACDS video station) ---------- */
+/* film 16:9 between the strip and the caption boxes; nav keeps its usual lower-right spot */
+#rw-film .film{position:absolute;left:112px;top:206px;width:1018px;height:573px;border-radius:26px;overflow:hidden;background:#003a5e}
+#rw-film .film video{width:100%;height:100%;object-fit:cover;display:block}
+#rw-film .play{position:absolute;left:50%;top:50%;margin:-66px 0 0 -66px;width:132px;height:132px;border-radius:50%;background:var(--amber);color:var(--ink);display:grid;place-items:center;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+#rw-film .play svg{width:50px;height:50px;margin-left:8px}
+#rw-film .film.playing .play{display:none}
+#rw-film .ph{position:absolute;left:0;right:0;bottom:0;padding:14px 24px;background:rgba(0,40,66,.82);font-family:var(--f-mono);font-size:16px;letter-spacing:.08em;color:rgba(255,255,255,.85)}
+#rw-film .film.playing .ph{display:none}
+#rw-film .tbox{position:absolute;left:1160px;right:112px;top:206px;height:270px;padding:44px 48px;background:var(--deep-2);border-radius:26px}
+#rw-film .tbox h2{font-size:56px;line-height:1.06;font-weight:800;letter-spacing:-.02em}
+#rw-film .cbox{position:absolute;left:1160px;right:112px;top:500px;height:279px;padding:40px 48px;background:var(--mist);color:var(--ink);border-radius:26px}
+#rw-film .cbox .mono{font-size:19px;letter-spacing:.22em;color:var(--blue)}
+#rw-film .cbox p{margin-top:14px;font-size:27px;line-height:1.45;color:var(--ink-soft)}
+
+/* ---------- Central Fill by the numbers (layout: NACDS "Purpose-built") ---------- */
+#cf-numbers h2{position:absolute;left:112px;top:200px;width:1500px;font-size:84px;line-height:1.05;font-weight:800;letter-spacing:-.02em;color:var(--deep)}
+#cf-numbers .sub{position:absolute;left:112px;top:398px;width:1300px;font-size:31px;line-height:1.45;color:var(--ink-soft)}
+#cf-numbers .rule{top:552px}
+#cf-numbers .cols{position:absolute;left:112px;right:112px;top:590px;display:grid;grid-template-columns:repeat(4,1fr);gap:48px}
+#cf-numbers .cols b{display:block;font-size:92px;line-height:1;font-weight:800;color:var(--deep);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+#cf-numbers .cols i{display:block;margin-top:20px;font-style:normal;font-family:var(--f-mono);font-size:18px;letter-spacing:.2em;text-transform:uppercase;color:var(--blue)}
+#cf-numbers .cols span{display:block;margin-top:10px;font-size:25px;line-height:1.4;color:var(--ink-soft)}
+#cf-numbers .back{top:76px}
+
+/* ---------- Let's connect (layout: NACDS closing) ---------- */
+#about-connect .glow{position:absolute;right:-200px;top:-260px;width:1100px;height:900px;background:radial-gradient(ellipse at center,rgba(255,175,59,.32) 0%,rgba(255,175,59,0) 62%)}
+#about-connect .eyebrow{top:176px}
+#about-connect h2{position:absolute;left:112px;top:226px;width:1100px;font-size:110px;line-height:1;font-weight:800;letter-spacing:-.025em;color:var(--deep)}
+#about-connect .sub{position:absolute;left:112px;top:470px;width:1160px;font-size:32px;line-height:1.45;color:var(--ink-soft)}
+#about-connect .sub strong{color:var(--ink);font-weight:700}
+#about-connect .qrcard{position:absolute;right:150px;top:200px;width:360px;padding:36px 36px 30px;border-radius:24px;background:var(--paper);text-align:center;box-shadow:0 20px 50px rgba(0,60,100,.12)}
+#about-connect .qrcard img{width:100%;display:block}
+#about-connect .qrcard b{display:block;margin-top:22px;font-size:30px;font-weight:800;color:var(--ink)}
+#about-connect .qrcard span{display:block;margin-top:6px;font-family:var(--f-mono);font-size:19px;letter-spacing:.1em;color:var(--blue)}
+#about-connect hr{position:absolute;left:112px;right:112px;top:654px;margin:0;border:0;border-top:2px solid var(--rule)}
+#about-connect .cols{position:absolute;left:112px;right:112px;top:700px;display:grid;grid-template-columns:repeat(4,1fr);gap:48px}
+#about-connect .cols i{display:block;font-style:normal;font-family:var(--f-mono);font-size:30px;letter-spacing:.18em;text-transform:uppercase;color:#7d93a3}
+#about-connect .cols span{display:block;margin-top:14px;font-size:25px;line-height:1.45;color:var(--ink-soft)}
+
+/* ---------- Closing (drone shot of the Waalwijk HQ) ---------- */
+#closing .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+/* same full-frame blue wash as Home; content centred */
+#closing .wash{position:absolute;inset:-4px;background:linear-gradient(180deg,rgba(0,63,102,.72) 0%,rgba(0,63,102,.55) 30%,rgba(0,46,76,.9) 58%,rgba(0,40,66,.97) 100%)}
+#closing .eyebrow{left:0;right:0;top:186px;text-align:center;color:var(--on-deep)}
+#closing h1{position:absolute;left:160px;right:160px;top:246px;text-align:center;font-size:128px;line-height:1;font-weight:800;letter-spacing:-.025em}
+#closing h1 em{font-style:normal;color:var(--amber)}
+#closing .qrcard{position:absolute;left:50%;transform:translateX(-50%);top:560px;display:grid;grid-template-columns:200px auto;align-items:center;gap:32px;padding:26px 40px 26px 26px;border-radius:24px;background:var(--paper);color:var(--ink)}
+#closing .qrcard img{width:200px;height:200px;display:block}
+#closing .qrcard b{display:block;font-size:36px;font-weight:800}
+#closing .qrcard span{display:block;margin-top:8px;font-family:var(--f-mono);font-size:24px;letter-spacing:.1em;color:var(--blue)}
+@media (prefers-reduced-motion:reduce){.screen,.pill,.mk span{transition:none}}
+@media (max-width:700px){#fit{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}}
+</style>
+
+<div id="fit"><div id="stage">
+
+<!-- ======================= HOME ======================= -->
+<section class="screen" id="home" data-sec="home">
+  <video src="assets/video/unit-of-use.mp4" autoplay muted loop playsinline preload="auto"></video>
+  <div class="wash"></div>
+  <p class="eyebrow">RoboPharma · Waalwijk, NL</p>
+  <h1>Engineering the <em>future of pharmacy</em></h1>
+  <p class="sub">Pharmacy automation, designed and built in the Netherlands since 2001.</p>
+  <div class="rule"></div>
+  <div class="cols">
+    <button class="col" data-go="robowall"><span class="n">01</span><h2>RoboWall</h2><p>Prescriptions ready around the clock, collected in 15 seconds.</p><span class="go">Explore →</span></button>
+    <button class="col" data-go="centralfill"><span class="n">02</span><h2>Central Fill</h2><p>Large-scale prescription fulfilment, automated from order to delivery.</p><span class="go">Explore →</span></button>
+    <button class="col" data-go="about-who"><span class="n">03</span><h2>About Us</h2><p>Meet the Waalwijk team behind the technology.</p><span class="go">Explore →</span></button>
+  </div>
+  <div class="foot">
+    <div class="logo"><img src="assets/img/logo-rp-nl-white.svg" alt="RoboPharma, automation by Capsa Healthcare"></div>
+    <div class="qr"><p><b>Visit our website</b>robopharma.nl</p><div class="code"><img src="assets/img/qr-robopharma-nl.svg" alt="QR code to robopharma.nl"></div></div>
+  </div>
+</section>
+
+<!-- ======================= ROBOWALL ======================= -->
+<section class="screen ov" id="robowall" data-sec="robowall">
+  <div class="halo"></div>
+  <img class="render" src="assets/img/robowall-render.jpg" alt="RoboWall, white exterior">
+  <p class="eyebrow" style="color:var(--on-deep-soft)">RoboWall</p>
+  <h1>Prescription collection, open 24/7</h1>
+  <p class="cue">Tap any topic to explore:</p>
+  <div class="rows">
+    <div class="row"><button class="pill" data-go="rw-1"><b>01</b>What is RoboWall</button><button class="pill" data-go="rw-2"><b>02</b>Always accessible</button></div>
+    <div class="row"><button class="pill" data-go="rw-3"><b>03</b>Fast &amp; simple</button><button class="pill" data-go="rw-4"><b>04</b>RoboWall by numbers</button></div>
+    <div class="row"><button class="pill" data-go="rw-5"><b>05</b>Benefits for pharmacies</button></div>
+    <div class="row"><button class="pill film" data-go="rw-film"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l15 9-15 9z"/></svg>The future of prescription collection</button></div>
+  </div>
+  <p class="demo"><span><b>See it live.</b> A working RoboWall is here on our stand. Ask the team for a demonstration.</span></p>
+</section>
+
+<section class="screen light det" id="rw-1" data-sec="robowall" data-strip="rw">
+  <p class="eyebrow">RoboWall</p>
+  <div class="body"><h2>What is RoboWall</h2>
+    <p class="text">RoboWall is a secure, automated <strong>24/7 prescription collection system</strong> that enables patients to collect their medication quickly, safely, and independently.</p></div>
+  <figure class="card"><img src="assets/img/rw-1.jpg" alt="RoboWall built into a pharmacy front"><figcaption>24/7 prescription collection</figcaption></figure>
+</section>
+<section class="screen light det" id="rw-2" data-sec="robowall" data-strip="rw">
+  <p class="eyebrow">RoboWall</p>
+  <div class="body"><h2>Always Accessible</h2>
+    <p class="text">Patients can collect their medication whenever it suits them, even outside pharmacy opening hours.</p>
+    <div class="kpis"><div class="kpi"><i>Access</i><b>24/7</b><span>to medication</span></div></div></div>
+  <figure class="card"><img src="assets/img/rw-2.jpg" alt="RoboWall door in a brick pharmacy front"><figcaption>Open after hours</figcaption></figure>
+</section>
+<section class="screen light det" id="rw-3" data-sec="robowall" data-strip="rw">
+  <p class="eyebrow">RoboWall</p>
+  <div class="body"><h2>Fast &amp; Simple</h2>
+    <p class="text">Collect your prescription in just <strong>15 seconds</strong>.</p>
+    <ol class="steps"><li>Prescription is securely stored in RoboWall</li><li>Patient receives an automatic notification</li><li>Enter the collection code and collect medication</li></ol></div>
+  <figure class="card"><img src="assets/img/rw-3.jpg" alt="Patient collecting a prescription from RoboWall"><figcaption>15-second collection</figcaption></figure>
+</section>
+<section class="screen light det" id="rw-4" data-sec="robowall" data-strip="rw">
+  <p class="eyebrow">RoboWall</p>
+  <div class="body"><h2>RoboWall by Numbers</h2>
+    <div class="kpis three">
+      <div class="kpi"><i>Speed</i><b>4</b><span>orders per minute</span></div>
+      <div class="kpi"><i>Wait</i><b>15 s</b><span>prescription wait time</span></div>
+      <div class="kpi"><i>Capacity</i><b>200+</b><span>prescriptions stored</span></div>
+      <div class="kpi"><i>Up to</i><b>6%</b><span>less return stock</span></div>
+      <div class="kpi"><i>Over</i><b>20%</b><span>more prescriptions stored</span></div>
+      <div class="kpi"><i>Space</i><b>50%</b><span>more space saved</span></div>
+    </div></div>
+  <figure class="card"><img src="assets/img/rw-4.jpg" alt="RoboWall cabinet inside a pharmacy"><figcaption>Inside the pharmacy</figcaption></figure>
+</section>
+<section class="screen light det" id="rw-5" data-sec="robowall" data-strip="rw">
+  <p class="eyebrow">RoboWall</p>
+  <div class="body"><h2>Benefits for Pharmacies</h2>
+    <ul class="ticks"><li>More time for patient care</li><li>Reduced staff workload</li><li>Less returned medication</li><li>Improved patient convenience</li><li>More efficient pharmacy operations</li></ul></div>
+  <figure class="card"><img src="assets/img/rw-5.jpg" alt="Patient using the RoboWall touchscreen"><figcaption>Patient touchscreen</figcaption></figure>
+</section>
+<section class="screen" id="rw-film" data-sec="robowall" data-strip="rw">
+  <div class="film" id="rw-filmbox">
+    <video data-src="assets/video/robowall.mp4" data-manual poster="assets/img/robowall-film-poster.jpg" playsinline preload="none"></video>
+    <button class="play" id="rw-play" aria-label="Play the RoboWall film"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l15 9-15 9z"/></svg></button>
+  </div>
+  <div class="tbox"><h2>The Future of Prescription Collection</h2></div>
+  <div class="cbox"><p class="mono">Request a live demonstration today</p>
+    <p>Enhance convenience, improve efficiency, and provide 24/7 access to medication.</p></div>
+</section>
+
+<!-- ======================= CENTRAL FILL ======================= -->
+<section class="screen ov" id="centralfill" data-sec="centralfill">
+  <div class="plan" id="plan"><img src="assets/img/cf-floor-plan.webp" alt="Isometric RoboPharma central fill floor plan with seven numbered steps"></div>
+  <p class="eyebrow" style="color:var(--on-deep-soft)">Central Fill</p>
+  <h1>Seven steps, prescription to patient</h1>
+  <p class="cue">Tap any step to explore:</p>
+  <div class="rows" id="cf-rows"></div>
+  <button class="alt" data-go="cf-numbers">Central fill by the numbers <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h13M12 5l7 7-7 7"/></svg></button>
+  <p class="note"><b>Example layout:</b> 30,000 orders a day. Each project is custom-designed for the space available.</p>
+</section>
+
+<section class="screen light" id="cf-numbers" data-sec="centralfill">
+  <p class="eyebrow">Central fill by the numbers</p>
+  <h2>From 1,000 to 100,000+ scripts per shift</h2>
+  <p class="sub">Automation designed specifically for central fill, increasing throughput, reducing labour costs and supporting long-term growth.</p>
+  <div class="rule"></div>
+  <div class="cols">
+    <div><b>3.55</b><i>Scripts per sq ft</i><span>vs. 1–1.5 industry norm</span></div>
+    <div><b>80%</b><i>Unit-of-use</i><span>of dispensing automated, up to</span></div>
+    <div><b>50%</b><i>Fewer FTEs</i><span>staffing requirement reduced by at least half</span></div>
+    <div><b>90%</b><i>Oral solids</i><span>of dispensing automated, up to</span></div>
+  </div>
+</section>
+
+<!-- CF detail screens are generated from CF_STEPS below -->
+
+<!-- ======================= ABOUT US ======================= -->
+<section class="screen light det" id="about-who" data-sec="about" data-strip="about">
+  <p class="eyebrow">About us</p>
+  <div class="body"><h2>Engineering the future of pharmacy</h2>
+    <p class="text">At RoboPharma, we believe every patient should receive the right medication, securely, accurately, and on time. Through innovative automation, smart logistics, and reliable technology, we help pharmacies improve efficiency, increase accessibility, and create more time for patient care.</p>
+    <div class="kpis three"><div class="kpi"><i>Founded</i><b>2001</b><span>in the Netherlands</span></div><div class="kpi"><i>HQ</i><b style="font-size:38px;padding-block:6px">Waalwijk</b><span>The Netherlands</span></div><div class="kpi"><i>Part of Capsa</i><b>2020</b><span>Capsa Healthcare</span></div></div></div>
+  <figure class="card"><img src="assets/img/about-team.jpg" alt="Two RoboPharma engineers on the factory floor" style="object-position:50% 30%"><figcaption>The team behind the technology</figcaption></figure>
+</section>
+<section class="screen light det" id="about-global" data-sec="about" data-strip="about">
+  <p class="eyebrow">About us</p>
+  <div class="body"><h2>From local innovation to global impact</h2>
+    <p class="text" style="font-size:27px">Founded in the Netherlands in 2001 and part of Capsa Healthcare since 2020, RoboPharma has grown into a globally recognized specialist in pharmacy automation. With headquarters in Waalwijk (NL) and a presence across <strong>Europe, the USA, and the Middle East</strong>, we help optimize workflows through innovative pharmacy automation solutions.</p></div>
+  <figure class="card map"><img src="assets/img/about-map.jpg" alt="World map with RoboPharma locations in Europe, the USA and the Middle East"><figcaption>500,000 scripts dispensed daily</figcaption></figure>
+</section>
+<section class="screen light det" id="about-why" data-sec="about" data-strip="about">
+  <p class="eyebrow">About us</p>
+  <div class="body" style="width:800px"><h2>Why RoboPharma</h2>
+    <div class="vals">
+      <div><img src="assets/img/icon-1.jpg" alt=""><p><b>Reliability</b><span>High performance with near-zero errors.</span></p></div>
+      <div><img src="assets/img/icon-2.jpg" alt=""><p><b>Innovation</b><span>Smart automation built around pharmacy needs.</span></p></div>
+      <div><img src="assets/img/icon-3.jpg" alt=""><p><b>Partnerships</b><span>Dedicated support and long-term collaboration.</span></p></div>
+      <div><img src="assets/img/icon-4.jpg" alt=""><p><b>Flexibility</b><span>Modular solutions that grow with your pharmacy.</span></p></div>
+      <div><img src="assets/img/icon-5.jpg" alt=""><p><b>Global Expertise</b><span>Part of Capsa Healthcare, serving pharmacies worldwide.</span></p></div>
+    </div></div>
+  <figure class="card wide"><video data-src="assets/video/rp-engineering.mp4" muted loop playsinline preload="none"></video><figcaption>RoboPharma · Waalwijk, NL</figcaption></figure>
+</section>
+<section class="screen light" id="about-connect" data-sec="about" data-strip="about">
+  <div class="glow"></div>
+  <p class="eyebrow">About us</p>
+  <h2>Let’s Connect</h2>
+  <p class="sub"><strong>Discover more about RoboPharma</strong> and our pharmacy automation solutions.</p>
+  <div class="qrcard"><img src="assets/img/qr-robopharma-nl.svg" alt="QR code to robopharma.nl"><b>Visit our website</b><span>robopharma.nl</span></div>
+  <hr>
+  <div class="cols">
+    <div><i>Sales</i><span>+31 416 347 172<br>sales@robopharma.com</span></div>
+    <div><i>Service</i><span>+31 416 651 808<br>helpdesk@capsahealthcare.com</span></div>
+    <div><i>Visit</i><span>Energieweg 2<br>5145 NW Waalwijk, NL</span></div>
+    <div><i>Online</i><span>robopharma.nl<br>Scan the code above</span></div>
+  </div>
+</section>
+
+<!-- ======================= CLOSING ======================= -->
+<section class="screen" id="closing" data-sec="about" data-strip="about">
+  <video class="bg" data-src="assets/video/closing-drone.mp4" poster="assets/img/closing-aerial.jpg" muted loop playsinline preload="none" aria-label="Drone flight over RoboPharma headquarters in Waalwijk"></video>
+  <div class="wash"></div>
+  <p class="eyebrow">RoboPharma · Waalwijk, NL</p>
+  <h1>Engineering the <em>future of pharmacy</em></h1>
+  <div class="qrcard"><img src="assets/img/qr-robopharma-nl.svg" alt="QR code to robopharma.nl"><p><b>Visit our website</b><span>robopharma.nl</span></p></div>
+  <div class="logo logo-bl"><img src="assets/img/logo-rp-nl-white.svg" alt="RoboPharma, automation by Capsa Healthcare"></div>
+</section>
+
+<!-- shared chrome, moved into the active screen by script -->
+<div id="strip-rw" class="strip" hidden>
+  <button data-go="rw-1"><b>01</b>What is RoboWall</button><button data-go="rw-2"><b>02</b>Accessible</button><button data-go="rw-3"><b>03</b>Fast &amp; simple</button>
+  <button data-go="rw-4"><b>04</b>By numbers</button><button data-go="rw-5"><b>05</b>Benefits</button><button data-go="rw-film"><b>06</b>The film</button>
+</div>
+<div id="strip-cf" class="strip" hidden></div>
+<div id="strip-about" class="strip" hidden>
+  <button data-go="about-who"><b>01</b>Who we are</button><button data-go="about-global"><b>02</b>Global impact</button><button data-go="about-why"><b>03</b>Why RoboPharma</button><button data-go="about-connect"><b>04</b>Let’s connect</button><button data-go="closing"><b>05</b>Visit our website</button>
+</div>
+<button id="back" class="back" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 12H6M12 19l-7-7 7-7"/></svg><span></span></button>
+<div id="logo-dark" class="logo logo-bl" hidden><img src="assets/img/logo-rp-nl.svg" alt="RoboPharma"></div>
+<p id="live" class="live" hidden>Live RoboWall demo on our stand</p>
+<nav id="gnav" class="global" hidden>
+  <button data-go="home">Home</button><button data-go="robowall">RoboWall</button><button data-go="centralfill">Central Fill</button><button data-go="about-who">About us</button><button id="autoplay" class="auto" aria-pressed="false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l15 9-15 9z"/></svg><span>Autoplay</span></button>
+</nav>
+
+</div></div>
+<div id="cache">Caching …</div>
+
+<script>
+(function(){
+  const stage=document.getElementById('stage');
+  function fit(){stage.style.transform='translate(-50%,-50%) scale('+Math.min(innerWidth/1920,innerHeight/1080)+')'}
+  addEventListener('resize',fit);fit();
+
+  /* Central Fill steps. Text: Roxanne's step slides + the C-975 floor plan spread.
+     at = marker position on the floor plan illustration, % of its width/height. */
+  const CF_STEPS=[
+    {short:'Arrival',name:'Prescription arrival',cap:'Order intake',img:'cf-1.jpg',at:[29,62.5],
+      text:'Orders are received directly from patients via a <strong>pharmacy website or app</strong>.',
+      kpis:[['Average','6','medication packs per script']]},
+    {short:'Stock in',name:'Stock entering',cap:'Stock intake',img:'cf-2.jpg',at:[41,68.5],
+      text:'Inventory is loaded into the RobotCells. Non-stock items arrive from the wholesaler in <strong>totes for immediate processing</strong>.'},
+    {short:'RobotCells',name:'Stock keeping',cap:'RobotCells',video:'assets/video/unit-of-use.mp4',at:[62.1,65.7],
+      text:'RobotCells dispense prescriptions containing only <strong>“Top 1,200” items</strong>. Bulk medication is stored inside the robot dispensers.',
+      kpis:[['Per RobotCell','600–700','prescriptions per hour'],['Covering','~70%','of all prescriptions']]},
+    {short:'SorterCells',name:'Non-stock keeping',cap:'SorterCells',img:'cf-4.jpg',at:[56.8,48.8],
+      text:'SorterCells handle everything outside the Top 1,200. Stock is supplied <strong>on demand by the wholesaler</strong> and processed in batches.',
+      kpis:[['Per SorterCell','500–600','prescriptions per hour'],['Batch size','100','prescriptions']]},
+    {short:'Collation',name:'Basket loading & collation',cap:'Collecting & loading bins',img:'cf-5.jpg',at:[71.4,25.4],
+      text:'An advanced transport and software network unites all bins with <strong>fully picked and sorted medications</strong>, and carries them to the RoboLabel stations.'},
+    {short:'RoboLabel',name:'Verification & labeling',cap:'RoboLabel stations',img:'cf-6.jpg',at:[42.5,22.1],
+      text:'Each order is scanned, verified, labeled, packaged and sealed. RoboPharma software <strong>validates every package</strong>, prints and applies the labels, and generates a final bag label once all items are confirmed.',
+      kpis:[['Per operator','~100','prescriptions per hour']]},
+    {short:'Sorting',name:'Sorting & delivery',cap:'Sorting for distribution',img:'cf-7.jpg',at:[11.8,31.9],
+      text:'Completed, labeled orders are scanned and sorted for <strong>delivery to branch pharmacies</strong> or direct shipment to patients.',
+      kpis:[['Layout shown','30,000','orders per day']]}
+  ];
+  const pad=n=>String(n).padStart(2,'0');
+  const rowsEl=document.getElementById('cf-rows'), plan=document.getElementById('plan'), stripCf=document.getElementById('strip-cf');
+  [[0,1],[2,3],[4],[5],[6]].forEach(r=>{const row=document.createElement('div');row.className='row';
+    r.forEach(i=>row.insertAdjacentHTML('beforeend',`<button class="pill" data-go="cf-${i+1}" data-step="${i}"><b>${pad(i+1)}</b>${CF_STEPS[i].name}</button>`));rowsEl.appendChild(row)});
+  CF_STEPS.forEach((s,i)=>{
+    plan.insertAdjacentHTML('beforeend',`<button class="mk" data-go="cf-${i+1}" data-step="${i}" style="left:${s.at[0]}%;top:${s.at[1]}%" aria-label="Step ${i+1}: ${s.name}"><span>${i+1}</span></button>`);
+    stripCf.insertAdjacentHTML('beforeend',`<button data-go="cf-${i+1}"><b>${pad(i+1)}</b>${s.short}</button>`);
+    const k=(s.kpis||[]).map(([a,b,c])=>`<div class="kpi"><i>${a}</i><b>${b}</b><span>${c}</span></div>`).join('');
+    const media=s.video?`<video data-src="${s.video}" muted loop playsinline preload="none"></video>`:`<img src="assets/img/${s.img}" alt="">`;
+    document.querySelector('#cf-numbers').insertAdjacentHTML('beforebegin',
+      `<section class="screen light det" id="cf-${i+1}" data-sec="centralfill" data-strip="cf"><p class="eyebrow">Central Fill · Step ${pad(i+1)}</p>
+       <div class="body"><h2>${s.name.replace(/^./,c=>c.toUpperCase())}</h2><p class="text">${s.text}</p>${k?`<div class="kpis">${k}</div>`:''}</div>
+       <figure class="card">${media}<figcaption>${s.cap}</figcaption></figure></section>`);
+  });
+  // Pills and markers light each other up, so the list and the plan read as one thing.
+  document.querySelectorAll('#centralfill [data-step]').forEach(el=>{
+    const on=v=>document.querySelectorAll(`#centralfill [data-step="${el.dataset.step}"]`).forEach(x=>x.classList.toggle('hi',v));
+    el.addEventListener('pointerenter',()=>on(true));el.addEventListener('pointerleave',()=>on(false));
+  });
+
+  const BACK={rw:['robowall','Back to RoboWall overview'],cf:['centralfill','Back to Central Fill overview']};
+  const C={strips:{rw:document.getElementById('strip-rw'),cf:stripCf,about:document.getElementById('strip-about')},
+    back:document.getElementById('back'),dark:document.getElementById('logo-dark'),
+    live:document.getElementById('live'),nav:document.getElementById('gnav')};
+  let backTo=null;
+  // The film plays with sound, so it starts from a tap rather than on arrival.
+  const filmBox=document.getElementById('rw-filmbox'), film=filmBox.querySelector('video');
+  document.getElementById('rw-play').addEventListener('click',()=>{
+    if(!film.src) film.src=film.dataset.src;
+    film.currentTime=0; film.play().then(()=>filmBox.classList.add('playing')).catch(()=>{});
+  });
+  film.addEventListener('ended',()=>filmBox.classList.remove('playing'));
+
+  function go(id){
+    const el=document.getElementById(id); if(!el||!el.classList.contains('screen')) return;
+    document.querySelectorAll('.screen.on').forEach(s=>s.classList.remove('on'));
+    el.classList.add('on');
+    const sec=el.dataset.sec, strip=el.dataset.strip, light=el.classList.contains('light');
+    Object.entries(C.strips).forEach(([k,n])=>{n.hidden=k!==strip; if(k===strip){el.appendChild(n);
+      n.querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.go===id));}});
+    const b=BACK[strip]||(id==='cf-numbers'?BACK.cf:null);
+    C.back.hidden=!b; if(b){backTo=b[0];C.back.querySelector('span').textContent=b[1];el.appendChild(C.back);}
+    C.live.hidden=!(strip==='rw'&&light); if(!C.live.hidden) el.appendChild(C.live);
+    C.dark.hidden=!light; if(light) el.appendChild(C.dark);
+    C.nav.hidden=false; el.appendChild(C.nav);
+    C.nav.querySelectorAll('button[data-go]').forEach(x=>x.classList.toggle('on',(x.dataset.go==='about-who'?'about':x.dataset.go)===sec));
+    document.querySelectorAll('video').forEach(v=>{
+      if(el.contains(v)&&!('manual' in v.dataset)){ if(!v.src&&v.dataset.src) v.src=v.dataset.src; v.play().catch(()=>{}); }
+      else if(!el.contains(v)){ v.pause(); if('manual' in v.dataset){ filmBox.classList.remove('playing'); } } });
+    try{history.replaceState(null,'','#'+id)}catch(e){}
+    idle();
+  }
+  document.addEventListener('click',e=>{
+    if(e.target.closest('#autoplay')){ playing?stopAuto():startAuto(); return; }
+    if(playing) stopAuto(false);   // any other tap hands control back to the visitor
+    const t=e.target.closest('[data-go]');
+    if(t) go(t.dataset.go); else if(e.target.closest('#back')) go(backTo); else if(e.target.closest('.logo')) go('home');
+    else if(!e.target.closest('button,a,video,nav')) {
+      // Taps on empty space: right third = next screen, left third = previous, in deck order.
+      // Buttons and other controls are handled above, so this sits "behind" them.
+      const r=stage.getBoundingClientRect(), fx=(e.clientX-r.left)/r.width;
+      const i=ORDER.indexOf(document.querySelector('.screen.on').id);
+      if(fx>=2/3) go(ORDER[(i+1)%ORDER.length]); else if(fx<=1/3) go(ORDER[(i-1+ORDER.length)%ORDER.length]);
+    }});
+
+  // Autoplay: loops every screen in deck order; Stop returns to the first screen.
+  const DWELL=9000, autoBtn=document.getElementById('autoplay');
+  const ORDER=[...document.querySelectorAll('.screen')].map(s=>s.id);
+  let playing=false, at=0, timer;
+  function tick(){ go(ORDER[at]); at=(at+1)%ORDER.length; timer=setTimeout(tick,DWELL); }
+  function startAuto(){ playing=true; autoBtn.classList.add('on'); autoBtn.setAttribute('aria-pressed','true');
+    autoBtn.querySelector('span').textContent='Stop'; autoBtn.querySelector('path').setAttribute('d','M6 6h12v12H6z'); at=0; tick(); }
+  function stopAuto(home=true){ playing=false; clearTimeout(timer); autoBtn.classList.remove('on'); autoBtn.setAttribute('aria-pressed','false');
+    autoBtn.querySelector('span').textContent='Autoplay'; autoBtn.querySelector('path').setAttribute('d','M6 3l15 9-15 9z'); if(home) go('home'); }
+
+  // Back to Home after two minutes untouched (not while autoplay is running).
+  let t; function idle(){clearTimeout(t);if(!playing)t=setTimeout(()=>go('home'),120000)}
+  ['pointerdown','keydown'].forEach(ev=>addEventListener(ev,idle,{passive:true}));
+
+  addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(!document.getElementById(h)?.classList.contains('on'))go(h)});
+  const start=location.hash.slice(1);
+  stage.classList.add('instant');
+  go(document.getElementById(start)?.classList.contains('screen')?start:'home');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>stage.classList.remove('instant')));
+
+  /* Offline cache. On the hosted site a service worker stores every screen,
+     photo, video and font in the kiosk's own browser storage, so once loaded
+     online it keeps running with no network. (Inside the claude.ai preview
+     service workers aren't allowed; registration just fails quietly.) */
+  function installSW(){
+    if(!('serviceWorker' in navigator)) return;
+    if(navigator.storage&&navigator.storage.persist) navigator.storage.persist();
+    const box=document.getElementById('cache');
+    if(new URLSearchParams(location.search).has('cache')) document.body.classList.add('cache');
+    navigator.serviceWorker.addEventListener('message',e=>{const m=e.data||{}; if(m.type!=='PRECACHE_PROGRESS') return;
+      box.textContent=m.finished?`CACHED — RUNS OFFLINE (${m.done} FILES)`:`CACHING ${m.done} / ${m.total}`;
+      if(m.finished){box.classList.add('done');setTimeout(()=>box.classList.add('gone'),6000);}});
+    navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(reg=>{
+      const urls=new Set(['./','./index.html','assets/fonts/Manrope-var-latin.woff2',
+        'assets/fonts/IBMPlexMono-normal-400-latin.woff2','assets/fonts/IBMPlexMono-normal-500-latin.woff2']);
+      document.querySelectorAll('img[src],video').forEach(n=>{
+        [n.getAttribute('src'),n.dataset.src,n.getAttribute('poster')].forEach(u=>{if(u&&!u.startsWith('http')) urls.add(u)});});
+      const target=reg.active||navigator.serviceWorker.controller;
+      if(target) target.postMessage({type:'PRECACHE',urls:[...urls]});
+    }).catch(()=>{});
+  }
+  setTimeout(installSW,2000);   // let the first screen paint before the bulk download starts
+})();
+</script>
