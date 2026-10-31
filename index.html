@@ -208,29 +208,17 @@ nav.global .auto.on{background:var(--amber);color:var(--ink)}
 #cf-numbers .cols span{display:block;margin-top:10px;font-size:25px;line-height:1.4;color:var(--ink-soft)}
 #cf-numbers .back{top:76px}
 
-/* ---------- Let's connect (layout: NACDS closing) ---------- */
-#about-connect .glow{position:absolute;right:-200px;top:-260px;width:1100px;height:900px;background:radial-gradient(ellipse at center,rgba(255,175,59,.32) 0%,rgba(255,175,59,0) 62%)}
-#about-connect .eyebrow{top:176px}
-#about-connect h2{position:absolute;left:112px;top:226px;width:1100px;font-size:110px;line-height:1;font-weight:800;letter-spacing:-.025em;color:var(--deep)}
-#about-connect .sub{position:absolute;left:112px;top:470px;width:1160px;font-size:32px;line-height:1.45;color:var(--ink-soft)}
-#about-connect .sub strong{color:var(--ink);font-weight:700}
-#about-connect .qrcard{position:absolute;right:150px;top:200px;width:360px;padding:36px 36px 30px;border-radius:24px;background:var(--paper);text-align:center;box-shadow:0 20px 50px rgba(0,60,100,.12)}
-#about-connect .qrcard img{width:100%;display:block}
-#about-connect .qrcard b{display:block;margin-top:22px;font-size:30px;font-weight:800;color:var(--ink)}
-#about-connect .qrcard span{display:block;margin-top:6px;font-family:var(--f-mono);font-size:19px;letter-spacing:.1em;color:var(--blue)}
-#about-connect hr{position:absolute;left:112px;right:112px;top:654px;margin:0;border:0;border-top:2px solid var(--rule)}
-#about-connect .cols{position:absolute;left:112px;right:112px;top:700px;display:grid;grid-template-columns:repeat(4,1fr);gap:48px}
-#about-connect .cols i{display:block;font-style:normal;font-family:var(--f-mono);font-size:30px;letter-spacing:.18em;text-transform:uppercase;color:#7d93a3}
-#about-connect .cols span{display:block;margin-top:14px;font-size:25px;line-height:1.45;color:var(--ink-soft)}
 
 /* ---------- Closing (drone shot of the Waalwijk HQ) ---------- */
 #closing .bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 /* same full-frame blue wash as Home; content centred */
 #closing .wash{position:absolute;inset:-4px;background:linear-gradient(180deg,rgba(0,63,102,.72) 0%,rgba(0,63,102,.55) 30%,rgba(0,46,76,.9) 58%,rgba(0,40,66,.97) 100%)}
-#closing .eyebrow{left:0;right:0;top:186px;text-align:center;color:var(--on-deep)}
-#closing h1{position:absolute;left:160px;right:160px;top:246px;text-align:center;font-size:128px;line-height:1;font-weight:800;letter-spacing:-.025em}
+#closing .eyebrow{left:0;right:0;top:160px;text-align:center;color:var(--amber)}
+#closing .contacts{position:absolute;left:0;right:0;top:822px;display:flex;justify-content:center;gap:64px;font-size:23px;color:var(--on-deep-soft)}
+#closing .contacts i{display:block;margin-bottom:8px;font-style:normal;font-family:var(--f-mono);font-size:17px;letter-spacing:.24em;text-transform:uppercase;color:var(--on-deep)}
+#closing h1{position:absolute;left:160px;right:160px;top:218px;text-align:center;font-size:128px;line-height:1;font-weight:800;letter-spacing:-.025em}
 #closing h1 em{font-style:normal;color:var(--amber)}
-#closing .qrcard{position:absolute;left:50%;transform:translateX(-50%);top:560px;display:grid;grid-template-columns:200px auto;align-items:center;gap:32px;padding:26px 40px 26px 26px;border-radius:24px;background:var(--paper);color:var(--ink)}
+#closing .qrcard{position:absolute;left:50%;transform:translateX(-50%);top:520px;display:grid;grid-template-columns:200px auto;align-items:center;gap:32px;padding:26px 40px 26px 26px;border-radius:24px;background:var(--paper);color:var(--ink)}
 #closing .qrcard img{width:200px;height:200px;display:block}
 #closing .qrcard b{display:block;font-size:36px;font-weight:800}
 #closing .qrcard span{display:block;margin-top:8px;font-family:var(--f-mono);font-size:24px;letter-spacing:.1em;color:var(--blue)}
@@ -376,28 +364,18 @@ nav.global .auto.on{background:var(--amber);color:var(--ink)}
     </div></div>
   <figure class="card wide"><video data-src="assets/video/rp-engineering.mp4" muted loop playsinline preload="none"></video><figcaption>RoboPharma · Waalwijk, NL</figcaption></figure>
 </section>
-<section class="screen light" id="about-connect" data-sec="about" data-strip="about">
-  <div class="glow"></div>
-  <p class="eyebrow">About us</p>
-  <h2>Let’s Connect</h2>
-  <p class="sub"><strong>Discover more about RoboPharma</strong> and our pharmacy automation solutions.</p>
-  <div class="qrcard"><img src="assets/img/qr-robopharma-nl.svg" alt="QR code to robopharma.nl"><b>Visit our website</b><span>robopharma.nl</span></div>
-  <hr>
-  <div class="cols">
-    <div><i>Sales</i><span>+31 416 347 172<br>sales@robopharma.com</span></div>
-    <div><i>Service</i><span>+31 416 651 808<br>helpdesk@capsahealthcare.com</span></div>
-    <div><i>Visit</i><span>Energieweg 2<br>5145 NW Waalwijk, NL</span></div>
-    <div><i>Online</i><span>robopharma.nl<br>Scan the code above</span></div>
-  </div>
-</section>
-
 <!-- ======================= CLOSING ======================= -->
 <section class="screen" id="closing" data-sec="about" data-strip="about">
   <video class="bg" data-src="assets/video/closing-drone.mp4" poster="assets/img/closing-aerial.jpg" muted loop playsinline preload="none" aria-label="Drone flight over RoboPharma headquarters in Waalwijk"></video>
   <div class="wash"></div>
-  <p class="eyebrow">RoboPharma · Waalwijk, NL</p>
+  <p class="eyebrow">Let’s connect</p>
   <h1>Engineering the <em>future of pharmacy</em></h1>
   <div class="qrcard"><img src="assets/img/qr-robopharma-nl.svg" alt="QR code to robopharma.nl"><p><b>Visit our website</b><span>robopharma.nl</span></p></div>
+  <div class="contacts">
+    <p><i>Sales</i>+31 416 347 172 · sales@robopharma.com</p>
+    <p><i>Service</i>+31 416 651 808 · helpdesk@capsahealthcare.com</p>
+    <p><i>Visit</i>Energieweg 2, 5145 NW Waalwijk</p>
+  </div>
   <div class="logo logo-bl"><img src="assets/img/logo-rp-nl-white.svg" alt="RoboPharma, automation by Capsa Healthcare"></div>
 </section>
 
@@ -408,7 +386,7 @@ nav.global .auto.on{background:var(--amber);color:var(--ink)}
 </div>
 <div id="strip-cf" class="strip" hidden></div>
 <div id="strip-about" class="strip" hidden>
-  <button data-go="about-who"><b>01</b>Who we are</button><button data-go="about-global"><b>02</b>Global impact</button><button data-go="about-why"><b>03</b>Why RoboPharma</button><button data-go="about-connect"><b>04</b>Let’s connect</button><button data-go="closing"><b>05</b>Visit our website</button>
+  <button data-go="about-who"><b>01</b>Who we are</button><button data-go="about-global"><b>02</b>Global impact</button><button data-go="about-why"><b>03</b>Why RoboPharma</button><button data-go="closing"><b>04</b>Let’s connect</button>
 </div>
 <button id="back" class="back" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M19 12H6M12 19l-7-7 7-7"/></svg><span></span></button>
 <div id="logo-dark" class="logo logo-bl" hidden><img src="assets/img/logo-rp-nl.svg" alt="RoboPharma"></div>

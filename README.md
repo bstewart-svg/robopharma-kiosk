@@ -7,8 +7,9 @@ October 2026 brief. It uses the screen layouts of the NACDS 2026 kiosk
 (`bstewart-svg/nacds-kiosk`) in RoboPharma's own colours, type and logo.
 
 **Screens:** Home → RoboWall (overview, five topics, the RoboWall film) → Central Fill
-(floor-plan overview, seven steps, by the numbers) → About Us (four screens) → closing
-screen with the website QR code over the drone flight of the Waalwijk building.
+(floor-plan overview, seven steps, by the numbers) → About Us (three screens) → Let's
+connect: tagline, website QR code and contact details over the drone flight of the
+Waalwijk building.
 
 **Touch behaviour**
 - The menu at bottom right (Home · RoboWall · Central Fill · About us · Autoplay) is on every screen.
