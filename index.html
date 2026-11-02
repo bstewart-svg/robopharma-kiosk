@@ -190,6 +190,10 @@ nav.global .auto.on{background:var(--amber);color:var(--ink)}
 #rw-film .play{position:absolute;left:50%;top:50%;margin:-66px 0 0 -66px;width:132px;height:132px;border-radius:50%;background:var(--amber);color:var(--ink);display:grid;place-items:center;box-shadow:0 10px 40px rgba(0,0,0,.35)}
 #rw-film .play svg{width:50px;height:50px;margin-left:8px}
 #rw-film .film.playing .play{display:none}
+#rw-film .sound{position:absolute;right:20px;bottom:20px;display:none;padding:12px 22px;border-radius:999px;background:rgba(0,40,66,.82);color:var(--paper);
+  font-family:var(--f-mono);font-size:17px;letter-spacing:.16em;text-transform:uppercase}
+#rw-film .sound[aria-pressed="true"]{background:var(--amber);color:var(--ink)}
+#rw-film .film.playing .sound{display:block}
 #rw-film .ph{position:absolute;left:0;right:0;bottom:0;padding:14px 24px;background:rgba(0,40,66,.82);font-family:var(--f-mono);font-size:16px;letter-spacing:.08em;color:rgba(255,255,255,.85)}
 #rw-film .film.playing .ph{display:none}
 #rw-film .tbox{position:absolute;left:1160px;right:112px;top:206px;height:270px;padding:44px 48px;background:var(--deep-2);border-radius:26px}
@@ -304,8 +308,9 @@ nav.global .auto.on{background:var(--amber);color:var(--ink)}
 </section>
 <section class="screen" id="rw-film" data-sec="robowall" data-strip="rw">
   <div class="film" id="rw-filmbox">
-    <video data-src="assets/video/robowall.mp4" data-manual poster="assets/img/robowall-film-poster.jpg" playsinline preload="none"></video>
+    <video data-src="assets/video/robowall.mp4" data-manual poster="assets/img/robowall-film-poster.jpg" muted playsinline preload="none"></video>
     <button class="play" id="rw-play" aria-label="Play the RoboWall film"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 3l15 9-15 9z"/></svg></button>
+    <button class="sound" id="rw-sound" aria-pressed="false">Sound off</button>
   </div>
   <div class="tbox"><h2>The Future of Prescription Collection</h2></div>
   <div class="cbox"><p class="mono">Request a live demonstration today</p>
@@ -452,12 +457,14 @@ nav.global .auto.on{background:var(--amber);color:var(--ink)}
     back:document.getElementById('back'),dark:document.getElementById('logo-dark'),
     live:document.getElementById('live'),nav:document.getElementById('gnav')};
   let backTo=null;
-  // The film plays with sound, so it starts from a tap rather than on arrival.
-  const filmBox=document.getElementById('rw-filmbox'), film=filmBox.querySelector('video');
+  // The film starts from a tap, always muted (it carries burnt-in subtitles); a pill turns sound on.
+  const filmBox=document.getElementById('rw-filmbox'), film=filmBox.querySelector('video'), soundBtn=document.getElementById('rw-sound');
+  const setSound=on=>{film.muted=!on;soundBtn.textContent=on?'Sound on':'Sound off';soundBtn.setAttribute('aria-pressed',String(on))};
   document.getElementById('rw-play').addEventListener('click',()=>{
     if(!film.src) film.src=film.dataset.src;
-    film.currentTime=0; film.play().then(()=>filmBox.classList.add('playing')).catch(()=>{});
+    setSound(false); film.currentTime=0; film.play().then(()=>filmBox.classList.add('playing')).catch(()=>{});
   });
+  soundBtn.addEventListener('click',()=>setSound(film.muted));
   film.addEventListener('ended',()=>filmBox.classList.remove('playing'));
 
   function go(id){
