@@ -12,7 +12,7 @@
  *     Big and effectively unchanging. To replace one, give it a new filename
  *     or bump CACHE below, or kiosks keep showing the old file.
  */
-var CACHE = 'robopharma-kiosk-v2';   // v2: new RoboWall photos, About photo, 2023 RoboWall film
+var CACHE = 'robopharma-kiosk-v3';   // v3: By Numbers photo (technician loading RoboWall)
 
 var SHELL = ['./', './index.html'];
 
