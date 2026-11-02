@@ -24,7 +24,7 @@ Waalwijk building.
 1. Connect to the internet and open the URL above **once**, with `?cache` on the end:
    `https://bstewart-svg.github.io/robopharma-kiosk/?cache`
    A readout at the bottom counts the files and turns green at
-   `CACHED — RUNS OFFLINE (34 FILES)`. This takes a minute or two (about 35 MB).
+   `CACHED — RUNS OFFLINE (34 FILES)`. This takes a minute or two (about 75 MB).
 2. From then on the kiosk runs with **no internet**. Whenever it is online again it
    picks up the latest version by itself.
 3. To run it full screen, start Microsoft Edge in kiosk mode, for example from a shortcut

@@ -1,7 +1,7 @@
 /* RoboPharma touch kiosk — offline cache.
  *
  * The kiosk is served over HTTPS from GitHub Pages. This worker copies the
- * whole presentation (~35 MB) into the kiosk browser's own storage, so after
+ * whole presentation (~75 MB) into the kiosk browser's own storage, so after
  * one online visit it runs with no network at all, and picks up changes the
  * next time it is online.
  *
@@ -12,7 +12,7 @@
  *     Big and effectively unchanging. To replace one, give it a new filename
  *     or bump CACHE below, or kiosks keep showing the old file.
  */
-var CACHE = 'robopharma-kiosk-v1';
+var CACHE = 'robopharma-kiosk-v2';   // v2: new RoboWall photos, About photo, 2023 RoboWall film
 
 var SHELL = ['./', './index.html'];
 
